@@ -1,21 +1,20 @@
-import axios from 'axios'
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-export const analyzeWebsite = async (url) => {
+export async function analyzeWebsite(payload) {
+  const url = `${BASE.replace(/\/$/, '')}/analyze`
+  console.log('analyzeWebsite POST ->', url, payload)
   try {
-    const response = await api.post('/analyze', { url })
-    return response.data
-  } catch (error) {
-    throw error
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const text = await res.text()
+    console.log('analyzeWebsite response status=', res.status, 'body=', text)
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`)
+    return JSON.parse(text)
+  } catch (err) {
+    console.error('analyzeWebsite error', err)
+    throw err
   }
 }
-
-export default api
